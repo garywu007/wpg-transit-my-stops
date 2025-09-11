@@ -224,8 +224,7 @@
         const boardBody = document.getElementById( `board-body-${busStop.stopId}`);
 
         try {
-          // const res = await fetch("data.json?_=" + Date.now()); // cache-buster
-          const maxResults = (busStop.routes && busStop.routes.length > 2) ? 5 : 3;
+          const maxResults = (busStop.routes && busStop.routes.split(",").length > 2) ? 5 : 3;
           const routes = busStop.routes ? `&routes=${busStop.routes}` : "";
           const res = await fetch(`https://winnipegtransit.com/api/v2/stops/${busStop.stopId}/schedule?max_results=${maxResults}${routes}`, { method: "GET" });
 
