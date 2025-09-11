@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Bus Stop Board</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.6) 0%, rgba(0, 0, 0, 0.6) 100%), url("https://winnipegtransit.com/assets/app_assets/images/homeBackgroundDesktopCompressed.d2bded42caaee9749968a5a9a5fc35b1.jpg");
+      background-repeat: no-repeat;
+      background-size: cover;
+      background-position: center center;
+      background-attachment: fixed;
+      margin: 0;
+      padding: 30px;
+      display: flex;
+      justify-content: center;
+    }
+
+    /* container to stack boards vertically */
+    .board-container {
+      display: flex;
+      flex-direction: column;
+      gap: 1em; /* vertical spacing between boards */
+      width: 460px; /* match board width */
+    }
+
+    .board {
+      background: #ffffff;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      overflow: hidden;
+    }
+
+    /* Header with stop ID and stop name */
+    .board-header {
+      display: flex;
+      align-items: flex-start;
+      background: linear-gradient(to right, #4a90e2, #83b3eb);
+      color: #eee;
+      padding: 12px 15px;
+      font-size: 18px;
+    }
+
+    .stop-id {
+      flex: 0 0 auto;
+      margin-right: 15px;
+      font-size: 20px;
+      width: 5ch;
+      white-space: nowrap;
+      display: flex;
+      align-items: center;
+      font-weight: bold;
+    }
+
+    .stop-name {
+      flex: 1;
+      overflow: hidden;
+      position: relative;
+      line-height: 1.2em;
+      height: 1.2em;
+    }
+
+    .stop-name span {
+      display: inline-block;
+      white-space: normal; /* allow wrapping */
+    }
+
+    /* only active when JS detects overflow */
+    .scroll-up span {
+      animation: scroll-up 6s linear infinite;
+    }
+
+    @keyframes scroll-up {
+      0%   { transform: translateY(100%); }
+      10%  { transform: translateY(0%); }
+      60%  { transform: translateY(0%); }
+      100% { transform: translateY(-100%); }
+    }
+
+    /* Body */
+    .board-body {
+      padding: 10px 15px;
+      min-height: 3em;
+    }
+
+    .row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 0;
+      /* border-bottom: 1px solid #83b3eb; */
+    }
+
+    .row:last-child {
+      border-bottom: none;
+    }
+
+    /* Route + Bus ID Badge */
+    .route-badge {
+      display: flex;
+      border: 1px solid #f37043;
+      border-radius: 5px;
+      overflow: hidden;
+      font-size: 20px;
+    }
+
+    .route {
+      background: #f37043;
+      color: #fff;
+      padding: 5px 10px;
+      border-right: 1px solid #f37043;
+      width: 4ch;
+      text-align: center;
+    }
+
+    .bus-id {
+      padding: 5px 10px;
+    }
+
+    /* Time Badge */
+    .time-badge {
+      display: flex;
+      border-radius: 5px;
+      overflow: hidden;
+      font-size: 20px;
+      font-weight: bold;
+      background: #000;
+    }
+
+    .scheduled {
+      padding: 5px 10px;
+      color: #fff;
+      background: #000;
+    }
+
+    .estimated {
+      padding: 5px 10px;
+    }
+
+    .early {
+      color: red; /* green */
+    }
+
+    .late {
+      color: lightgreen; /* red */
+    }
+
+    .on-time {
+      color: black; /* blue */
+    }
+  </style>
+</head>
+<body>
+  <div class="board-container" id="board-container">
+  </div>
+
+  <script>
+    
+    // const busStops = localStorage.getItem("busStops");
+    const busStops = [
+      {"stopId": 10638, stopName: "Southbound Main at Portage and Main Junction", "routes": "FX2,FX3", "active": false},
+      {"stopId": 50884, stopName: "Eastbound St Vital Centre Hub at St. Vital Centre (FX2)", "active": false},
+      {"stopId": 50883, stopName: "Eastbound St Vital Centre at St. Vital Centre Hub (552 to South St. Vital)", "active": false},
+    ]
+
+    const intervals = {}
+
+    // create bus-stop boards
+    function init() {
+      const boardContainer = document.getElementById("board-container");
+
+      Array.from(busStops).forEach(busStop => {
+        const board = document.createElement("div");
+        board.className = "board";
+        board.innerHTML = `
+          <div class="board-header" onclick="switchOnOff(${busStop.stopId})">
+            <div class="stop-id">${busStop.stopId}</div>
+            <div class="stop-name">
+              <span>${busStop.stopName}</span>
+            </div>
+          </div>
+          <div class="board-body" id="board-body-${busStop.stopId}">
+            <div style="width: 100%; text-align: center;">⬆️Click blue bar to refresh data⬆️</div>
+          </div>
+        `;
+
+        boardContainer.appendChild(board);
+
+        fetchStopSchedules(busStop);
+
+        intervals[busStop.stopId] = setInterval(() => {
+          fetchStopSchedules(busStop);
+        }, 3000);
+      });
+    }
+
+    // detect if stop name is taller than its container
+    function checkOverflow() {
+      const stopNames = document.getElementsByClassName("stop-name");
+
+      Array.from(stopNames).forEach(stopName => {
+        const span = stopName.querySelector("span");
+
+        if (span.scrollHeight > stopName.clientHeight) {
+          stopName.classList.add("scroll-up");
+        } else {
+          stopName.classList.remove("scroll-up");
+        }
+      });
+    }
+
+    init();
+    checkOverflow();
+
+    function getStatusClass(scheduled, estimated) {
+      if (scheduled === estimated) return "on-time";
+      return (estimated < scheduled) ? "early" : "late";
+    }
+
+    async function fetchStopSchedules(busStop) {
+      if (busStop.active) {
+        const boardBody = document.getElementById( `board-body-${busStop.stopId}`);
+
+        try {
+          // const res = await fetch("data.json?_=" + Date.now()); // cache-buster
+          const maxResults = (busStop.routes && busStop.routes.length > 2) ? 5 : 3;
+          const routes = busStop.routes ? `&routes=${busStop.routes}` : "";
+          const res = await fetch(`https://winnipegtransit.com/api/v2/stops/${busStop.stopId}/schedule?max_results=${maxResults}${routes}`, { method: "GET" });
+
+          // Check for HTTP errors
+          if (!res.ok) {
+            throw new Error(`HTTP ${res.status} - ${res.statusText}`);
+          }
+
+          const data = await res.json();
+
+          // Update arrivals
+          boardBody.innerHTML = "";
+          data.schedule.forEach(schedule => {
+            const cls = getStatusClass(schedule.scheduledTime, schedule.estimatedTime);
+            const row = document.createElement("div");
+            row.className = "row";
+            row.innerHTML = `
+              <div class="route-badge">
+                <div class="route">${schedule.route.id}</div>
+                <div class="bus-id">${schedule.busId}</div>
+              </div>
+              <div class="time-badge">
+                <div class="scheduled">${formatTime(schedule.scheduledTime)}</div>
+                <div class="estimated ${cls}">> ${formatTime(schedule.estimatedTime)}</div>
+              </div>
+            `;
+            boardBody.appendChild(row);
+          });
+
+        } catch (err) {
+          console.error("Fetch failed:", err);
+        }
+      } else {
+        const boardBody = document.getElementById( `board-body-${busStop.stopId}`);
+        boardBody.innerHTML = `<div style="width: 100%; text-align: center;">⬆️Click blue bar to refresh data⬆️</div>`;
+      }
+      
+    }
+
+    function switchOnOff(stopId) {
+      busStop = busStops.find(s => s.stopId === stopId);
+      busStop.active = !busStop.active;
+
+      const boardBody = document.getElementById( `board-body-${stopId}`);
+      if (!busStop.active) {
+        boardBody.innerHTML = `<div style="width: 100%; text-align: center;">⬆️Click blue bar to refresh data⬆️</div>`;
+      } else {
+        boardBody.innerHTML = `<div style="width: 100%; text-align: center;">Loading, please wait...⌛️</div>`;
+      }
+    }
+
+    function formatTime(isoString) {
+      const date = new Date(isoString);
+      return date.toLocaleTimeString("en-CA", { hour12: false }); 
+    }
+  </script>
+
+</body>
+</html>
