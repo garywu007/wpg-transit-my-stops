@@ -99,17 +99,17 @@
     /* Route + Bus ID Badge */
     .route-badge {
       display: flex;
-      border: 1px solid #f37043;
+      /* border: 1px solid #f37043; */
       border-radius: 5px;
       overflow: hidden;
       font-size: 20px;
     }
 
     .route {
-      background: #f37043;
-      color: #fff;
+      /* background: #f37043; */
+      /* color: #fff; */
       padding: 5px 10px;
-      border-right: 1px solid #f37043;
+      /* border-right: 1px solid #f37043; */
       width: 4ch;
       text-align: center;
     }
@@ -242,8 +242,8 @@
             const row = document.createElement("div");
             row.className = "row";
             row.innerHTML = `
-              <div class="route-badge">
-                <div class="route">${schedule.route.id}</div>
+              <div class="route-badge" style="border: 1px solid ${schedule.route.badgeStyle.borderColor};">
+                <div class="route" style="color: ${schedule.route.badgeStyle.color}; background: ${schedule.route.badgeStyle.backgroundColor}; border-right: 1px solid ${schedule.route.badgeStyle.borderColor};">${schedule.route.id}</div>
                 <div class="bus-id">${schedule.busId}</div>
               </div>
               <div class="time-badge">
