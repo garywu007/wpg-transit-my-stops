@@ -17,7 +17,7 @@
       background-attachment: fixed;
       margin: 0;
       padding: 30px;
-      display: flex;
+      display: grid;
       justify-content: center;
     }
 
@@ -149,22 +149,103 @@
     .on-time {
       color: black; /* blue */
     }
+
+    .modal {
+    display: none; /* hidden by default */
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.4);
+  }
+
+  .modal-content {
+    background: #fff;
+    margin: 10% auto;
+    padding: 1.5em;
+    border-radius: 1em;
+    width: 300px;
+    box-shadow: 0 0 20px rgba(0,0,0,0.5);
+  }
+
+  .modal-content h2 {
+    margin-top: 0;
+    font-size: 1.2em;
+    margin-bottom: 1em;
+  }
+
+  .modal-content input {
+    width: 100%;
+    padding: 0.5em;
+    margin-bottom: 1em;
+    border: 1px solid #ccc;
+    border-radius: 0.5em;
+  }
+
+  .modal-content button {
+    padding: 0.5em 1em;
+    margin-right: 0.5em;
+    border: none;
+    border-radius: 0.5em;
+    cursor: pointer;
+  }
+
+  .btn-primary {
+    background: #4a90e2;
+    color: white;
+  }
+
+  .btn-secondary {
+    background: #eee;
+    color: black;
+  }
+
+  #add-stop-btn {
+    display: block;
+    margin: 1em auto;
+    padding: 0.7em 1.5em;
+    font-size: 1em;
+    border: 0px;
+    border-radius: 0.7em;
+    background: white;
+    cursor: pointer;
+  }
+
+  #add-stop-btn:hover {
+    background: #4a90e2;
+    color: white;
+  }
   </style>
 </head>
 <body>
   <div class="board-container" id="board-container">
   </div>
 
+  <button id="add-stop-btn">➕ Add Stop</button>
+
+  <div id="addStopModal" class="modal">
+    <div class="modal-content">
+      <h2>Add Stop</h2>
+      <input type="number" id="newStopId" placeholder="Enter stop ID" />
+      <div style="text-align: right;">
+        <button id="cancelAddStop" class="btn-secondary">Cancel</button>
+        <button id="confirmAddStop" class="btn-primary">Add</button>
+      </div>
+    </div>
+  </div>
+
   <script>
     
-    // const busStops = localStorage.getItem("busStops");
-    const busStops = [
-      {"stopId": 10583, stopName: "Eastbound Portage at Fort", "routes": "F7,BLUE", "active": false},
-      {"stopId": 10638, stopName: "Southbound Main at Portage and Main Junction", "routes": "FX2", "active": false},
-      {"stopId": 50884, stopName: "Eastbound St Vital Centre Hub at St. Vital Centre (FX2)", "active": false},
-      {"stopId": 50883, stopName: "Eastbound St Vital Centre at St. Vital Centre Hub (552 to South St. Vital)", "active": false},
-      {"stopId": 50880, stopName: "Westbound St Vital Centre at St. Vital Centre Hub (676 to Creek Bend)", "active": false},
-    ]
+    const busStops = localStorage.getItem("busStops");
+    // const busStops = [
+    //   {"stopId": 10583, stopName: "Eastbound Portage at Fort", "routes": "F7,BLUE", "active": false},
+    //   {"stopId": 10638, stopName: "Southbound Main at Portage and Main Junction", "routes": "FX2", "active": false},
+    //   {"stopId": 50884, stopName: "Eastbound St Vital Centre Hub at St. Vital Centre (FX2)", "active": false},
+    //   {"stopId": 50883, stopName: "Eastbound St Vital Centre at St. Vital Centre Hub (552 to South St. Vital)", "active": false},
+    //   {"stopId": 50880, stopName: "Westbound St Vital Centre at St. Vital Centre Hub (676 to Creek Bend)", "active": false},
+    // ]
 
     const intervals = {}
 
@@ -225,7 +306,7 @@
         const boardBody = document.getElementById( `board-body-${busStop.stopId}`);
 
         try {
-          const maxResults = (busStop.routes && busStop.routes.split(",").length > 2) ? 5 : 3;
+          const maxResults = (busStop.routes && busStop.routes.split(",").length > 1) ? 5 : 3;
           const routes = busStop.routes ? `&routes=${busStop.routes}` : "";
           const res = await fetch(`https://winnipegtransit.com/api/v2/stops/${busStop.stopId}/schedule?max_results=${maxResults}${routes}`, { method: "GET" });
 
@@ -281,6 +362,16 @@
       const date = new Date(isoString);
       return date.toLocaleTimeString("en-CA", { hour12: false }); 
     }
+
+    // Open modal
+    document.getElementById("add-stop-btn").addEventListener("click", () => {
+      document.getElementById("addStopModal").style.display = "block";
+    });
+
+    // Cancel
+    document.getElementById("cancelAddStop").addEventListener("click", () => {
+      document.getElementById("addStopModal").style.display = "none";
+    });
   </script>
 
 </body>
