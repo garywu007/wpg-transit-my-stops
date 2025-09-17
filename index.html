@@ -26,7 +26,8 @@
       display: flex;
       flex-direction: column;
       gap: 1em; /* vertical spacing between boards */
-      width: 460px; /* match board width */
+      width: 90vw;
+      max-width: 460px;
     }
 
     .board {
@@ -147,7 +148,7 @@
     }
 
     .on-time {
-      color: black; /* blue */
+      color: black;
     }
 
     .modal {
@@ -177,7 +178,6 @@
   }
 
   .modal-content input {
-    width: 100%;
     padding: 0.5em;
     margin-bottom: 1em;
     border: 1px solid #ccc;
@@ -203,7 +203,7 @@
   }
 
   #add-stop-btn {
-    display: none;
+    display: block;
     margin: 1em auto;
     padding: 0.7em 1.5em;
     font-size: 1em;
@@ -217,18 +217,50 @@
     background: #4a90e2;
     color: white;
   }
+
+  #newStopId {
+    width: -webkit-fill-available;
+  }
+
+  .route-block {
+    margin-bottom: 8px; /* spacing between routes */
+    padding: 4px 0;
+    border-bottom: 1px solid #ddd; /* optional separator */
+  }
+
+  .route-header {
+    display: flex;
+    justify-content: space-between; /* push left/right apart */
+    align-items: center;
+    width: 100%;
+  }
+
+  .routeNo {
+    font-weight: bold;
+  }
+
+  .delete {
+    display: flex;
+    justify-content: space-between; /* push left/right apart */
+    align-items: center;
+    width: 100%;
+  }
   </style>
 </head>
 <body>
   <div class="board-container" id="board-container">
   </div>
 
-  <button id="add-stop-btn">➕ Add Stop</button>
+  <button id="add-stop-btn">⚙️ Stops Settings</button>
 
   <div id="addStopModal" class="modal">
     <div class="modal-content">
-      <h2>Add Stop</h2>
-      <input type="number" id="newStopId" placeholder="Enter stop ID" />
+      <h2>⚙️ Stops Settings</h2>
+      <h3>🚉 Selected Stops</h3>
+      <div id="currentStopInfo"></div>
+      <h3>➕ Add A New Stop</h3>
+      <input type="number" id="newStopId" placeholder="Enter new stop ID" maxlength="5" onkeyup="fetchStopInfo();" />
+      <div id="newStopInfo"></div>
       <div style="text-align: right;">
         <button id="cancelAddStop" class="btn-secondary">Cancel</button>
         <button id="confirmAddStop" class="btn-primary">Add</button>
@@ -238,14 +270,14 @@
 
   <script>
     
-    // const busStops = localStorage.getItem("busStops");
-    const busStops = [
-      {stopId: 10583, stopName: "Eastbound Portage at Fort", routes: "F7,BLUE", active: false},
-      {stopId: 10638, stopName: "Southbound Main at Portage and Main Junction", routes: "FX2", active: false},
-      {stopId: 50884, stopName: "Eastbound St Vital Centre Hub at St. Vital Centre (FX2)", active: false},
-      {stopId: 50883, stopName: "Eastbound St Vital Centre at St. Vital Centre Hub (552 to South St. Vital)", active: false},
-      {stopId: 50880, stopName: "Westbound St Vital Centre at St. Vital Centre Hub (676 to Creek Bend)", active: false},
-    ]
+    let busStops = JSON.parse(localStorage.getItem("busStops")|| "[]");
+    // const busStops = [
+    //   {stopId: 10583, stopName: "Eastbound Portage at Fort", routes: "F7,BLUE", active: false},
+    //   {stopId: 10638, stopName: "Southbound Main at Portage and Main Junction", routes: "FX2", active: false},
+    //   {stopId: 50884, stopName: "Eastbound St Vital Centre Hub at St. Vital Centre (FX2)", active: false},
+    //   {stopId: 50883, stopName: "Eastbound St Vital Centre at St. Vital Centre Hub (552 to South St. Vital)", active: false},
+    //   {stopId: 50880, stopName: "Westbound St Vital Centre at St. Vital Centre Hub (676 to Creek Bend)", active: false},
+    // ]
 
     const intervals = {}
 
@@ -253,7 +285,7 @@
     function init() {
       const boardContainer = document.getElementById("board-container");
 
-      Array.from(busStops).forEach(busStop => {
+      busStops.forEach(busStop => {
         const board = document.createElement("div");
         board.className = "board";
         board.innerHTML = `
@@ -306,8 +338,11 @@
         const boardBody = document.getElementById( `board-body-${busStop.stopId}`);
 
         try {
-          const maxResults = (busStop.routes && busStop.routes.split(",").length > 1) ? 5 : 3;
-          const routes = busStop.routes ? `&routes=${busStop.routes}` : "";
+          const selectedRoutes = busStop.routes
+            .filter(route => route.selected)
+            .map(route => route.route);
+          const maxResults = selectedRoutes.length > 1 ? 5 : 3;
+          const routes = busStop.routes ? `&routes=${selectedRoutes.join(",")}` : "";
           const res = await fetch(`https://winnipegtransit.com/api/v2/stops/${busStop.stopId}/schedule?max_results=${maxResults}${routes}`, { method: "GET" });
 
           // Check for HTTP errors
@@ -347,7 +382,7 @@
     }
 
     function switchOnOff(stopId) {
-      busStop = busStops.find(s => s.stopId === stopId);
+      busStop = busStops.find(s => s.stopId == stopId);
       busStop.active = !busStop.active;
 
       const boardBody = document.getElementById( `board-body-${stopId}`);
@@ -363,14 +398,184 @@
       return date.toLocaleTimeString("en-CA", { hour12: false }); 
     }
 
+    function deleteStop(stopId) {
+      console.log(stopId);
+      var newSelectedBusStops = busStops.filter(stop => stop.stopId != stopId);
+      console.log(newSelectedBusStops);
+      localStorage.setItem("busStops", JSON.stringify(newSelectedBusStops));
+      busStops = JSON.parse(localStorage.getItem("busStops") || "[]");
+      loadCurrentStopsInfo();
+    }
+
+    function updateStop(stopId, newRouteInfo) {
+      busStop = busStops.find(stop => stop.stopId == stopId);
+      routes = busStop.routes;
+      route = routes.find(route => route.route == newRouteInfo.value);
+      route.selected = newRouteInfo.checked;
+
+      localStorage.setItem("busStops", JSON.stringify(busStops));
+    }
+    
+    function loadCurrentStopsInfo() {
+      currentStopInfo.innerHTML = "";
+
+      busStops.forEach(busStop => {
+        const stopName = busStop.stopName;
+        const stopRoutes = busStop.routes;
+
+        // Update currentStopInfo
+        const currentStopInfo = document.getElementById("currentStopInfo");
+        currentStopInfo.innerHTML += `
+          <div class="delete">
+            <strong>${stopName}</strong>
+            <span onclick="deleteStop(${busStop.stopId});">🗑️</span>
+          </div>
+        `;
+
+        stopRoutes.forEach(route => {
+          currentStopInfo.innerHTML += `
+            <div class="route-block">
+              <div class="route-header">
+                <span class="routeNo">${route.route}</span>
+                <input 
+                  type="checkbox"
+                  class="route-checkbox"
+                  value="${route.route}"
+                  ${route.selected ? "checked" : ""}
+                  onchange="updateStop(${busStop.stopId}, this)"
+                />
+              </div>
+              <div class="routeDestination">${route.destination}</div>
+            </div>
+          `;
+        });
+      });
+    }
+    
     // Open modal
     document.getElementById("add-stop-btn").addEventListener("click", () => {
       document.getElementById("addStopModal").style.display = "block";
+      document.getElementById("newStopId").value = "";
+      document.getElementById("newStopInfo").innerHTML = "";
+
+      loadCurrentStopsInfo();
     });
 
     // Cancel
     document.getElementById("cancelAddStop").addEventListener("click", () => {
       document.getElementById("addStopModal").style.display = "none";
+    });
+
+    async function fetchStopInfo() {
+      const stopId = document.getElementById("newStopId").value;
+
+      if (stopId.length === 5) {
+        try {
+          const res = await fetch(`https://winnipegtransit.com/api/v2/stops/${stopId}`, { method: "GET" });
+
+          // Check for HTTP errors
+          if (!res.ok) {
+            throw new Error(`HTTP ${res.status} - ${res.statusText}`);
+          }
+
+          const data = await res.json();
+
+          const stopName = data.name;
+          const stopRoutes = await fetchStopRoutes(stopId);
+
+          console.log(stopName, stopRoutes);
+
+          // Update newStopInfo
+          const newStopInfo = document.getElementById("newStopInfo");
+          newStopInfo.innerHTML = `
+            <div><strong>${stopName}</strong></div>
+          `;
+
+          stopRoutes.forEach(route => {
+            newStopInfo.innerHTML += `
+              <div class="route-block">
+                <div class="route-header">
+                  <span class="routeNo">${route.routeNo}</span>
+                  <input type="checkbox" class="route-checkbox" value="${route.routeNo}" />
+                </div>
+                <div class="routeDestination">${route.routeDestinations}</div>
+              </div>
+            `;
+          });
+
+        } catch (err) {
+          console.error("Fetch failed:", err);
+        }
+      }
+    }
+
+    async function fetchStopRoutes(stopId) {
+      try {
+        const res = await fetch(`https://winnipegtransit.com/api/v2/stops/${stopId}/routes`, { method: "GET" });
+
+        // Check for HTTP errors
+        if (!res.ok) {
+          throw new Error(`HTTP ${res.status} - ${res.statusText}`);
+        }
+
+        const data = await res.json();
+        const routesInfo = [];
+        
+        data.forEach(route => {
+          routeInfo = {
+            "routeNo": route.id,
+            "routeColor": route.badgeStyle,
+            "routeDestinations": route.variants.map(variant => variant.name).join(" / ")
+          }
+
+          routesInfo.push(routeInfo);
+        });
+
+        return routesInfo;
+      } catch (err) {
+        console.error("Fetch failed:", err);
+      }
+    }
+
+    document.getElementById("confirmAddStop").addEventListener("click", () => {
+      const stopId = document.getElementById("newStopId").value;
+      const stopName = document.querySelector("#newStopInfo strong").innerText;
+      const routes = [];
+
+      document.querySelectorAll("#newStopInfo .route-block").forEach(block => {
+        const routeNo = block.querySelector(".routeNo").innerText;
+        const destination = block.querySelector(".routeDestination").innerText;
+        const checkbox = block.querySelector(".route-checkbox");
+        const selected = checkbox.checked;
+
+        routes.push({
+          route: routeNo,
+          destination: destination,
+          selected: selected,
+        });
+      });
+
+      const busStopMetadata = {
+        "stopId": stopId,
+        "stopName": stopName,
+        "routes": routes,
+        "active": false
+      }
+
+      if (localStorage.getItem("busStops") === null) {
+        const busStopsStorage = [];
+        busStopsStorage.push(busStopMetadata);
+        localStorage.setItem("busStops", JSON.stringify(busStopsStorage));
+      } else {
+        const busStopsStorage = JSON.parse(localStorage.getItem("busStops") || "[]");
+        const busStopExist = busStopsStorage.find(s => s.stopId == stopId);
+        if (busStopExist === undefined) {
+          busStopsStorage.push(busStopMetadata);
+          localStorage.setItem("busStops", JSON.stringify(busStopsStorage));
+        } else {
+          alert("Stop alreayd added!");
+        }
+      }
     });
   </script>
 
