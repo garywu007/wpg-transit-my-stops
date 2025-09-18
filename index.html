@@ -152,99 +152,130 @@
     }
 
     .modal {
-    display: none; /* hidden by default */
-    position: fixed;
-    z-index: 1000;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0,0,0,0.4);
-  }
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.4);
+    }
 
-  .modal-content {
-    background: #fff;
-    margin: 10% auto;
-    padding: 1.5em;
-    border-radius: 1em;
-    width: 300px;
-    box-shadow: 0 0 20px rgba(0,0,0,0.5);
-  }
+    .modal-content {
+      background: #fff;
+      margin: 5vh auto;
+      padding: 0 1.5em;
+      border-radius: 1em;
+      width: 90vw;
+      max-width: 400px;
+      height: 85vh;
+      overflow: scroll;
+      box-shadow: 0 0 20px rgba(0,0,0,0.5);
+    }
 
-  .modal-content h2 {
-    margin-top: 0;
-    font-size: 1.2em;
-    margin-bottom: 1em;
-  }
+    .modal-content input {
+      padding: 0.5em;
+      border: 1px solid #ccc;
+      border-radius: 0.5em;
+    }
 
-  .modal-content input {
-    padding: 0.5em;
-    margin-bottom: 1em;
-    border: 1px solid #ccc;
-    border-radius: 0.5em;
-  }
+    .modal-content button {
+      padding: 0.5em 1em;
+      margin-right: 0.5em;
+      border: none;
+      border-radius: 0.5em;
+      cursor: pointer;
+    }
 
-  .modal-content button {
-    padding: 0.5em 1em;
-    margin-right: 0.5em;
-    border: none;
-    border-radius: 0.5em;
-    cursor: pointer;
-  }
+    .modal-header {
+      position: sticky;
+      top: 0;
+      padding-top: 0.5em;
+      padding-bottom: 0.5em;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      line-height: 0;
+      background: linear-gradient(to bottom, rgba(255, 255, 255, 1) 80%, rgba(255, 255, 255, 0) 100%);
+    }
 
-  .btn-primary {
-    background: #4a90e2;
-    color: white;
-  }
+    .modal-header span {
+      font-size: 2em;
+    }
 
-  .btn-secondary {
-    background: #eee;
-    color: black;
-  }
+    .btn-primary {
+      background: #4a90e2;
+      color: white;
+    }
 
-  #add-stop-btn {
-    display: block;
-    margin: 1em auto;
-    padding: 0.7em 1.5em;
-    font-size: 1em;
-    border: 0px;
-    border-radius: 0.7em;
-    background: white;
-    cursor: pointer;
-  }
+    .btn-secondary {
+      background: #eee;
+      color: black;
+    }
 
-  #add-stop-btn:hover {
-    background: #4a90e2;
-    color: white;
-  }
+    #add-stop-btn {
+      display: block;
+      margin: 1em auto;
+      padding: 0.7em 1.5em;
+      font-size: 1em;
+      border: 0px;
+      border-radius: 0.7em;
+      background: white;
+      cursor: pointer;
+    }
 
-  #newStopId {
-    width: -webkit-fill-available;
-  }
+    #add-stop-btn:hover {
+      background: #4a90e2;
+      color: white;
+    }
 
-  .route-block {
-    margin-bottom: 8px; /* spacing between routes */
-    padding: 4px 0;
-    border-bottom: 1px solid #ddd; /* optional separator */
-  }
+    #newStopId {
+      width: -webkit-fill-available;
+      margin-bottom: 1em;
+    }
 
-  .route-header {
-    display: flex;
-    justify-content: space-between; /* push left/right apart */
-    align-items: center;
-    width: 100%;
-  }
+    .route-block {
+      margin-bottom: 8px; /* spacing between routes */
+      padding: 4px 0;
+      /* border-bottom: 1px solid #ddd; optional separator */
+    }
 
-  .routeNo {
-    font-weight: bold;
-  }
+    .route-header {
+      display: flex;
+      justify-content: space-between; /* push left/right apart */
+      align-items: center;
+      width: 100%;
+    }
 
-  .delete {
-    display: flex;
-    justify-content: space-between; /* push left/right apart */
-    align-items: center;
-    width: 100%;
-  }
+    .routeNo {
+      font-weight: bold;
+    }
+
+    .delete {
+      display: flex;
+      justify-content: space-between; /* push left/right apart */
+      align-items: center;
+      width: 100%;
+      background: linear-gradient(to right, #4a90e2, #83b3eb);
+      color: #eee;
+      border-top-left-radius: 4px;
+      border-top-right-radius: 4px;
+      margin-bottom: 1em;
+    }
+
+    .delete strong {
+      margin: 6px;
+    }
+
+    .delete span {
+      margin-right: 6px;
+    }
+
+    #newStopInfo {
+      background: #e4f7ff;
+      border-radius: 4px;
+    }
   </style>
 </head>
 <body>
@@ -255,35 +286,30 @@
 
   <div id="addStopModal" class="modal">
     <div class="modal-content">
-      <h2>⚙️ Stops Settings</h2>
+      <div class="modal-header">
+        <h2>⚙️ Stops Settings</h2>
+        <span id="closeModal">✖️</span>
+      </div>
       <h3>🚉 Selected Stops</h3>
       <div id="currentStopInfo"></div>
       <h3>➕ Add A New Stop</h3>
       <input type="number" id="newStopId" placeholder="Enter new stop ID" maxlength="5" onkeyup="fetchStopInfo();" />
       <div id="newStopInfo"></div>
       <div style="text-align: right;">
-        <button id="cancelAddStop" class="btn-secondary">Cancel</button>
         <button id="confirmAddStop" class="btn-primary">Add</button>
       </div>
     </div>
   </div>
 
   <script>
-    
+    // 10583 10638 50884 50883 50880
     let busStops = JSON.parse(localStorage.getItem("busStops")|| "[]");
-    // const busStops = [
-    //   {stopId: 10583, stopName: "Eastbound Portage at Fort", routes: "F7,BLUE", active: false},
-    //   {stopId: 10638, stopName: "Southbound Main at Portage and Main Junction", routes: "FX2", active: false},
-    //   {stopId: 50884, stopName: "Eastbound St Vital Centre Hub at St. Vital Centre (FX2)", active: false},
-    //   {stopId: 50883, stopName: "Eastbound St Vital Centre at St. Vital Centre Hub (552 to South St. Vital)", active: false},
-    //   {stopId: 50880, stopName: "Westbound St Vital Centre at St. Vital Centre Hub (676 to Creek Bend)", active: false},
-    // ]
-
     const intervals = {}
 
     // create bus-stop boards
     function init() {
       const boardContainer = document.getElementById("board-container");
+      boardContainer.innerHTML = "";
 
       busStops.forEach(busStop => {
         const board = document.createElement("div");
@@ -399,9 +425,7 @@
     }
 
     function deleteStop(stopId) {
-      console.log(stopId);
       var newSelectedBusStops = busStops.filter(stop => stop.stopId != stopId);
-      console.log(newSelectedBusStops);
       localStorage.setItem("busStops", JSON.stringify(newSelectedBusStops));
       busStops = JSON.parse(localStorage.getItem("busStops") || "[]");
       loadCurrentStopsInfo();
@@ -417,6 +441,8 @@
     }
     
     function loadCurrentStopsInfo() {
+      busStops = JSON.parse(localStorage.getItem("busStops")|| "[]");
+      const currentStopInfo = document.getElementById("currentStopInfo");
       currentStopInfo.innerHTML = "";
 
       busStops.forEach(busStop => {
@@ -424,7 +450,6 @@
         const stopRoutes = busStop.routes;
 
         // Update currentStopInfo
-        const currentStopInfo = document.getElementById("currentStopInfo");
         currentStopInfo.innerHTML += `
           <div class="delete">
             <strong>${stopName}</strong>
@@ -433,10 +458,14 @@
         `;
 
         stopRoutes.forEach(route => {
+          const color = route.routeColor ? route.routeColor.color : "black";
+          const backgroundColor = route.routeColor ? route.routeColor.backgroundColor : "white";
+          const borderColor = route.routeColor ? route.routeColor.borderColor : "navy";
+
           currentStopInfo.innerHTML += `
             <div class="route-block">
               <div class="route-header">
-                <span class="routeNo">${route.route}</span>
+                <span class="routeNo" style="color: ${color}; background-color: ${backgroundColor}; border: 1px solid ${borderColor}; border-radius: 4px; width: 6ch; text-align: center;">${route.route}</span>
                 <input 
                   type="checkbox"
                   class="route-checkbox"
@@ -461,13 +490,17 @@
       loadCurrentStopsInfo();
     });
 
-    // Cancel
-    document.getElementById("cancelAddStop").addEventListener("click", () => {
+    // Close
+    document.getElementById("closeModal").addEventListener("click", () => {
       document.getElementById("addStopModal").style.display = "none";
+      document.getElementById("newStopInfo").style.padding = "0";
+      init();
+      checkOverflow();
     });
 
     async function fetchStopInfo() {
       const stopId = document.getElementById("newStopId").value;
+      const newStopInfo = document.getElementById("newStopInfo");
 
       if (stopId.length === 5) {
         try {
@@ -483,10 +516,7 @@
           const stopName = data.name;
           const stopRoutes = await fetchStopRoutes(stopId);
 
-          console.log(stopName, stopRoutes);
-
           // Update newStopInfo
-          const newStopInfo = document.getElementById("newStopInfo");
           newStopInfo.innerHTML = `
             <div><strong>${stopName}</strong></div>
           `;
@@ -495,7 +525,7 @@
             newStopInfo.innerHTML += `
               <div class="route-block">
                 <div class="route-header">
-                  <span class="routeNo">${route.routeNo}</span>
+                  <span class="routeNo" style="color: ${route.routeColor.color}; background-color: ${route.routeColor.backgroundColor}; border: 1px solid ${route.routeColor.borderColor}; border-radius: 4px; width: 6ch; text-align: center;">${route.routeNo}</span>
                   <input type="checkbox" class="route-checkbox" value="${route.routeNo}" />
                 </div>
                 <div class="routeDestination">${route.routeDestinations}</div>
@@ -503,9 +533,13 @@
             `;
           });
 
+          newStopInfo.style.padding = "5px";
         } catch (err) {
           console.error("Fetch failed:", err);
         }
+      } else {
+        newStopInfo.innerHTML = "";
+        newStopInfo.style.padding = "0";
       }
     }
 
@@ -542,39 +576,58 @@
       const stopName = document.querySelector("#newStopInfo strong").innerText;
       const routes = [];
 
-      document.querySelectorAll("#newStopInfo .route-block").forEach(block => {
-        const routeNo = block.querySelector(".routeNo").innerText;
-        const destination = block.querySelector(".routeDestination").innerText;
-        const checkbox = block.querySelector(".route-checkbox");
-        const selected = checkbox.checked;
+      if (stopId.length === 5) {
+        document.querySelectorAll("#newStopInfo .route-block").forEach(block => {
+          const routeNo = block.querySelector(".routeNo");
+          const destination = block.querySelector(".routeDestination").innerText;
+          const checkbox = block.querySelector(".route-checkbox");
+          const selected = checkbox.checked;
 
-        routes.push({
-          route: routeNo,
-          destination: destination,
-          selected: selected,
+          routes.push({
+            route: routeNo.innerText,
+            routeColor: {
+              color: routeNo.style.color,
+              backgroundColor: routeNo.style.backgroundColor,
+              borderColor: routeNo.style.borderColor
+            },
+            destination: destination,
+            selected: selected,
+          });
         });
-      });
 
-      const busStopMetadata = {
-        "stopId": stopId,
-        "stopName": stopName,
-        "routes": routes,
-        "active": false
-      }
+        const busStopMetadata = {
+          "stopId": stopId,
+          "stopName": stopName,
+          "routes": routes,
+          "active": false
+        }
 
-      if (localStorage.getItem("busStops") === null) {
-        const busStopsStorage = [];
-        busStopsStorage.push(busStopMetadata);
-        localStorage.setItem("busStops", JSON.stringify(busStopsStorage));
-      } else {
-        const busStopsStorage = JSON.parse(localStorage.getItem("busStops") || "[]");
-        const busStopExist = busStopsStorage.find(s => s.stopId == stopId);
-        if (busStopExist === undefined) {
+        if (localStorage.getItem("busStops") === null) {
+          const busStopsStorage = [];
           busStopsStorage.push(busStopMetadata);
           localStorage.setItem("busStops", JSON.stringify(busStopsStorage));
+
+          document.getElementById("newStopInfo").innerHTML = "";
+          document.getElementById("newStopInfo").style.padding = "0";
+          document.getElementById("newStopId").value = "";
+          loadCurrentStopsInfo();
         } else {
-          alert("Stop alreayd added!");
+          const busStopsStorage = JSON.parse(localStorage.getItem("busStops") || "[]");
+          const busStopExist = busStopsStorage.find(s => s.stopId == stopId);
+          if (busStopExist === undefined) {
+            busStopsStorage.push(busStopMetadata);
+            localStorage.setItem("busStops", JSON.stringify(busStopsStorage));
+
+            document.getElementById("newStopInfo").innerHTML = "";
+            document.getElementById("newStopInfo").style.padding = "0";
+            document.getElementById("newStopId").value = "";
+            loadCurrentStopsInfo();
+          } else {
+            alert("Stop alreayd added!");
+          }
         }
+      } else {
+        alert("Please input correct stop ID!");
       }
     });
   </script>
