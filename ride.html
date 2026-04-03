@@ -60,10 +60,6 @@
             align-items: center;
         }
 
-        .item:not(:first-child) {
-            margin-top: 0.3em;
-        }
-
         .title {
             gap: 10px;
             border-top-left-radius: 5em;
@@ -208,12 +204,20 @@
             .container {
                 flex-direction: column;
             }
+
+            .item:not(:first-child) {
+                margin-top: 0.5em;
+            }
         }
 
         /* Landscape (horizontal): side by side */
         @media (orientation: landscape) {
             .container {
                 flex-direction: row;
+            }
+
+            .item:not(:first-child) {
+                margin-top: 0.3em;
             }
         }
     </style>
