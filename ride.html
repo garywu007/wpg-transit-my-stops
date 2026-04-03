@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Responsive Split Layout</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body,
+        html {
+            height: 100%;
+            width: 100%;
+            font-family: Arial, sans-serif;
+        }
+
+        .container {
+            display: flex;
+            height: 100vh;
+            width: 100vw;
+        }
+
+        .panel {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+        }
+
+        .panel1 {
+            background: #222;
+
+            flex-direction: column;
+            align-items: stretch;
+            /* make children full width */
+            justify-content: flex-start;
+            /* stack from top */
+            padding: 10px;
+            gap: 10px;
+            color: #eee;
+        }
+
+        .item {
+            display: flex;
+            align-items: center;
+        }
+
+        .item:not(:first-child) {
+            margin-top: 0.5em;
+        }
+
+        .title {
+            gap: 10px;
+            border-top-left-radius: 5em;
+            border-bottom-left-radius: 5em;
+            background: linear-gradient(to right, #3b559e, #222);
+            color: #b5c5f2;
+        }
+
+        .title span {
+            flex: 1;
+            text-align: center;
+            margin-right: 2em;
+        }
+
+        .route span {
+            flex: 1;
+            text-align: center;
+            border-radius: 1em;
+            font-weight: bold;
+            box-shadow: 0 0 10px 2px #eee;
+            border: 2px solid #0064b1;
+            background-color: #0064b1;
+            color: #ffffff;
+        }
+
+        .destination span,
+        .nextstopName span {
+            flex: 1;
+            text-align: center;
+            padding: 0.1em;
+            border-left: 2px solid #444;
+            border-top: 2px solid #444;
+            border-right: 2px solid #666;
+            border-bottom: 2px solid #666;
+            background-color: #111;
+            color: darkgoldenrod;
+        }
+
+        /* .nextstopName span {
+            flex: 1;
+            text-align: center;
+            font-weight: bold;
+        } */
+
+        .nextstop span {
+            flex: 1;
+            text-align: center;
+            color: #aaa;
+            /* border-radius: 1em; */
+            /* box-shadow: 0 0 10px 2px #eee; */
+            /* border: 2px solid #333; */
+        }
+
+        .panel2 {
+            background: #555;
+
+            display: flex;
+            justify-content: center;
+            align-items: center;
+
+            perspective: 600px;
+            /* 👈 enables 3D effect */
+        }
+
+        .cylinder {
+            position: relative;
+            width: 70%;
+            height: 200px;
+
+            transform-style: preserve-3d;
+        }
+
+        .cylinder-item {
+            position: absolute;
+            width: 100%;
+            text-align: center;
+            font-size: 20px;
+            color: white;
+            top: 50%;
+            left: 0;
+            transform-origin: center center -100px;
+        }
+
+        .cylinder-item:nth-child(1) {
+            transform: rotateX(320deg) translateZ(120px) translateY(-60%);
+            color: #666;
+        }
+
+        .cylinder-item:nth-child(2) {
+            transform: rotateX(340deg) translateZ(120px) translateY(-60%);
+            color: #777;
+        }
+
+        .cylinder-item:nth-child(3) {
+            transform: rotateX(0deg) translateZ(120px) translateY(-60%);
+            font-weight: bold;
+            font-size: 25px;
+            color: lightskyblue;
+        }
+
+        .cylinder-item:nth-child(3):hover {
+            /* Moves the gradient up to reveal the bottom color */
+            background-position: 0 0;
+        }
+
+        .cylinder-item:nth-child(4) {
+            transform: rotateX(348deg) translateZ(120px) translateY(-60%);
+            font-weight: bold;
+            font-size: 25px;
+            color: lightskyblue;
+            animation: flash 1s steps(1) infinite;
+        }
+
+        .cylinder-item:nth-child(5) {
+            transform: rotateX(20deg) translateZ(120px) translateY(-60%);
+            color: #bbb;
+            /* font-weight: bold; */
+        }
+
+        .cylinder-item:nth-child(6) {
+            transform: rotateX(40deg) translateZ(120px) translateY(-60%);
+            color: #888;
+            /* font-weight: bold; */
+        }
+
+        @keyframes flash {
+            0% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.4;
+            }
+
+            100% {
+                opacity: 1;
+            }
+        }
+
+        /* Portrait (vertical): stack top & bottom */
+        @media (orientation: portrait) {
+            .container {
+                flex-direction: column;
+            }
+        }
+
+        /* Landscape (horizontal): side by side */
+        @media (orientation: landscape) {
+            .container {
+                flex-direction: row;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="panel panel1">
+            <div class="item title">
+                <img src="https://info.winnipegtransit.com/assets/1027/Winnipeg_Transit_Round_Blue_Logo_bigger.png" />
+                <span>BUS: 350</span>
+            </div>
+            <div class="item route">
+                <span>BLUE</span>
+            </div>
+            <div class="item destination">
+                <span>=> Unicity Shopping Centre</span>
+            </div>
+            <div class="item nextstop">
+                <span><i>NEXT STOP</i></span>
+            </div>
+            <div class="item nextstopName">
+                <span>Northbound<br>Pembina at Grandmont</span>
+            </div>
+        </div>
+        <div class="panel panel2">
+            <div class="cylinder">
+                <div class="cylinder-item">Northbound<br>Pembina at De La Digue</div>
+                <div class="cylinder-item">Northbound<br>Pembina at Ducharme</div>
+                <div class="cylinder-item">Northbound<br>Pembina at Grandmont</div>
+                <div class="cylinder-item">^^^</div>
+                <div class="cylinder-item">Northbound<br>Pembina at Dalhousie South</div>
+                <div class="cylinder-item">Northbound<br>Pembina at Newdale North</div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>
