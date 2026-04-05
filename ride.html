@@ -439,7 +439,7 @@
             try {
                 let distance = await getDistance(stop_lat, stop_lon);
                 let stops_distance = document.getElementById('stops_distance');
-                stops_distance.textContent += `${stop.name} - ${distance.toFixed(3)}km`;
+                stops_distance.textContent += `${stop.name} - ${distance.toFixed(3)}km\n`;
                 // console.log("distance to", stop.name, distance.toFixed(3), "km");
             } catch (err) {
                 alert("Error getting distance for", stop.name, ":", err);
