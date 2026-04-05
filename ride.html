@@ -335,14 +335,15 @@
             </div>
         </div>
         <div class="panel panel2">
-            <div class="cylinder">
+            <div id="stops_distance"></div>
+            <!-- <div class="cylinder">
                 <div class="cylinder-item"></div>
                 <div class="cylinder-item"></div>
                 <div class="cylinder-item"></div>
                 <div class="cylinder-item">^^^</div>
                 <div class="cylinder-item"></div>
                 <div class="cylinder-item"></div>
-            </div>
+            </div> -->
         </div>
     </div>
     <div id="busModal" class="modal hidden">
@@ -437,9 +438,11 @@
 
             try {
                 let distance = await getDistance(stop_lat, stop_lon);
-                console.log("distance to", stop.name, distance.toFixed(3), "km");
+                let stops_distance = document.getElementById('stops_distance');
+                stops_distance.textContent += `${stop.name} - ${distance.toFixed(3)}km`;
+                // console.log("distance to", stop.name, distance.toFixed(3), "km");
             } catch (err) {
-                console.error("Error getting distance for", stop.name, ":", err);
+                alert("Error getting distance for", stop.name, ":", err);
             }
         };
     }
