@@ -157,26 +157,27 @@
             font-weight: bold;
             font-size: 23px;
             color: lightskyblue;
-        }
-
-        .cylinder-item:nth-child(4) {
-            transform: rotateX(348deg) translateZ(120px) translateY(-60%);
-            font-weight: bold;
-            font-size: 25px;
-            color: lightskyblue;
             animation: flash 1s steps(1) infinite;
         }
 
-        .cylinder-item:nth-child(5) {
+        .cylinder-item:nth-child(4) {
             transform: rotateX(20deg) translateZ(120px) translateY(-60%);
             color: #bbb;
             /* font-weight: bold; */
         }
 
-        .cylinder-item:nth-child(6) {
+        .cylinder-item:nth-child(5) {
             transform: rotateX(40deg) translateZ(120px) translateY(-60%);
             color: #888;
             /* font-weight: bold; */
+        }
+
+        .cylinder-item:nth-child(6) {
+            transform: rotateX(348deg) translateZ(120px) translateY(-60%);
+            font-weight: bold;
+            font-size: 25px;
+            color: lightskyblue;
+            animation: flash 1s steps(1) infinite;
         }
 
         @keyframes flash {
@@ -185,7 +186,7 @@
             }
 
             50% {
-                opacity: 0.4;
+                opacity: 0.6;
             }
 
             100% {
@@ -335,15 +336,14 @@
             </div>
         </div>
         <div class="panel panel2">
-            <div id="stops_distance"></div>
-            <!-- <div class="cylinder">
-                <div class="cylinder-item"></div>
-                <div class="cylinder-item"></div>
-                <div class="cylinder-item"></div>
-                <div class="cylinder-item">^^^</div>
-                <div class="cylinder-item"></div>
-                <div class="cylinder-item"></div>
-            </div> -->
+            <div class="cylinder">
+                <div class="cylinder-item">1</div>
+                <div class="cylinder-item">2</div>
+                <div class="cylinder-item">3</div>
+                <div class="cylinder-item">4</div>
+                <div class="cylinder-item">5</div>
+                <!-- <div class="cylinder-item">^^^</div> -->
+            </div>
         </div>
     </div>
     <div id="busModal" class="modal hidden">
@@ -418,7 +418,7 @@
 
     async function loadData(bus_id) {
         //fetchData
-        console.log(tripInfo);
+        // console.log(tripInfo);
 
         document.querySelector('.title > span').textContent = `BUS: ${tripInfo.busId}`;
         document.querySelector('.route > span').textContent = tripInfo.route.name;
@@ -428,23 +428,15 @@
         document.querySelector('.destination > span').textContent = tripInfo.variant.name;
 
         stops_data = tripInfo.scheduledStops;
-        // set next stop
-        // set route stops
 
-        // stops_data.forEach(stop => {
-        for (const stop of stops_data) {
-            let stop_lat = stop.position.lat;
-            let stop_lon = stop.position.lng;
+        let start_stop_seq = await setStartStop(stops_data);
+        document.querySelector('.nextstopName > span').innerHTML = formatStopName(stops_data[start_stop_seq].name);
 
-            try {
-                let distance = await getDistance(stop_lat, stop_lon);
-                let stops_distance = document.getElementById('stops_distance');
-                stops_distance.textContent += `${stop.name} - ${distance.toFixed(3)}km\n`;
-                // console.log("distance to", stop.name, distance.toFixed(3), "km");
-            } catch (err) {
-                alert("Error getting distance for", stop.name, ":", err);
-            }
-        };
+        const cylinder_items = document.querySelectorAll('.cylinder-item');
+
+        for (let i = 0; i < 5; i++) {
+            cylinder_items[i].innerHTML = formatStopName(stops_data[start_stop_seq - 2 + i].name);
+        }
     }
 
     //getDistance
@@ -460,33 +452,6 @@
         const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
         return R * c; // distance in km
     }
-
-    // function getDistance(targetLat, targetLon) {
-    //     if (navigator.geolocation) {
-    //         navigator.geolocation.getCurrentPosition(
-    //             (position) => {
-    //                 const userLat = position.coords.latitude;
-    //                 const userLon = position.coords.longitude;
-
-    //                 console.log(userLat, userLon, targetLat, targetLon);
-    //                 const distance = calculateDistance(userLat, userLon, targetLat, targetLon);
-
-    //                 // document.getElementById("output").innerText =
-    //                 //   `Your location: (${userLat.toFixed(4)}, ${userLon.toFixed(4)})\n` +
-    //                 //   `Target location: (${targetLat}, ${targetLon})\n` +
-    //                 //   `Distance: ${distance.toFixed(2)} km`;
-    //                 return distance;
-    //             },
-    //             (error) => {
-    //                 console.log("Error: ", error.message);
-    //             }
-    //         );
-    //     } else {
-    //         console.log("Geolocation is not supported.");
-    //     }
-
-    //     return -1;
-    // }
 
     function getDistance(targetLat, targetLon) {
         return new Promise((resolve, reject) => {
@@ -511,6 +476,77 @@
                 }
             );
         });
+    }
+
+    function setStartStop(stops_data) {
+        return new Promise((resolve, reject) => {
+            if (!navigator.geolocation) {
+                reject("Geolocation is not supported.");
+                return;
+            }
+
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    const userLat = position.coords.latitude;
+                    const userLon = position.coords.longitude;
+                    let min_distance = 999;
+                    let closest_stop_seq = -1;
+                    // let stops_distance = "";
+
+                    // call your existing calculateDistance function
+                    for (const [idx, stop] of stops_data.entries()) {
+                        let stop_lat = stop.position.lat;
+                        let stop_lon = stop.position.lng;
+
+                        try {
+                            let distance = calculateDistance(userLat, userLon, stop_lat, stop_lon);
+                            if (min_distance < distance) {
+                                // stops_distance += `* ${idx}: ${stop.name} - ${distance.toFixed(3)}km\n`;
+                                closest_stop_seq = idx - 1;
+                                break;
+                            } else {
+                                // stops_distance += `${idx}: ${stop.name} - ${distance.toFixed(3)}km\n`;
+                                min_distance = distance;
+                            }
+
+                        } catch (err) {
+                            console.log("Error getting distance for", stop.name, ":", err);
+                        }
+                    };
+                    resolve(closest_stop_seq);
+                },
+                (error) => {
+                    reject(error.message);
+                }
+            );
+        });
+    }
+
+    function formatStopName(stopName) {
+        // Map full direction to single-letter code
+        const directionMap = {
+            Northbound: 'N',
+            Southbound: 'S',
+            Eastbound: 'E',
+            Westbound: 'W'
+        };
+
+        // Split only at the first space after the direction
+        const firstSpaceIndex = stopName.indexOf(' ');
+        if (firstSpaceIndex === -1) return stopName; // no space found
+
+        const directionWord = stopName.slice(0, firstSpaceIndex);
+        const rest = stopName.slice(firstSpaceIndex + 1);
+
+        const dirLetter = directionMap[directionWord] || directionWord;
+
+        // Split the rest at ' at ' if exists
+        const parts = rest.split(' at ');
+        if (parts.length === 2) {
+            return `<small>${dirLetter} - ${parts[0]}</small><br>${parts[1]}`;
+        } else {
+            return `<small>${dirLetter}</small><br>${rest}`;
+        }
     }
 
 </script>
