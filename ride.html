@@ -10,6 +10,7 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <script src="./mockData.js"></script>
 
     <title>Bus Ride Live</title>
 
@@ -80,9 +81,9 @@
             border-radius: 1em;
             font-weight: bold;
             box-shadow: 0 0 10px 2px #eee;
-            border: 2px solid #0064b1;
-            background-color: #0064b1;
-            color: #ffffff;
+            border: 2px solid black;
+            background-color: black;
+            color: darkgray;
         }
 
         .destination span,
@@ -114,8 +115,6 @@
         }
 
         .panel2 {
-            background: #555;
-
             display: flex;
             justify-content: center;
             align-items: center;
@@ -194,10 +193,103 @@
             }
         }
 
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+
+            background: rgba(0, 0, 0, 0.5);
+
+            display: flex;
+            justify-content: center;
+            align-items: center;
+
+            z-index: 1000;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .modal-content {
+            background: #888;
+            padding: 20px;
+            border-radius: 10px;
+            width: 300px;
+
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .modal-content input {
+            padding: 10px;
+
+            border-left: 2px solid #444;
+            border-top: 2px solid #444;
+            border-right: 2px solid #666;
+            border-bottom: 2px solid #666;
+            background-color: #111;
+            color: darkgoldenrod;
+        }
+
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        .modal-actions button {
+            padding: 8px 12px;
+            cursor: pointer;
+        }
+
+        .dialpad {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+        }
+
+        .dialpad button {
+            padding: 15px;
+            font-size: 18px;
+            border: none;
+            border-radius: 8px;
+            background: #333;
+            color: #ccc;
+            cursor: pointer;
+        }
+
+        .dialpad button:active {
+            background: #ccc;
+            color: black;
+        }
+
+        #ok_button {
+            background-color: darkgreen;
+        }
+
+        #ok_button:disabled {
+            background: #003700;
+            color: black;
+        }
+
+        #busIdInput {
+            text-align: center;
+            font-size: 20px;
+            padding: 10px;
+        }
+
         /* Portrait (vertical): stack top & bottom */
         @media (orientation: portrait) {
             .container {
                 flex-direction: column;
+            }
+
+            .panel2 {
+                background: linear-gradient(#222 0%, #555 5%);
             }
 
             .item:not(:first-child) {
@@ -211,6 +303,10 @@
                 flex-direction: row;
             }
 
+            .panel2 {
+                background: linear-gradient(to right, #222 0%, #555 5%, #555 95%, #222 100%);
+            }
+
             .item:not(:first-child) {
                 margin-top: 0.3em;
             }
@@ -221,34 +317,196 @@
 <body>
     <div class="container">
         <div class="panel panel1">
-            <div class="item title">
+            <div class="item title" onclick="openModal()">
                 <img src="https://info.winnipegtransit.com/assets/1027/Winnipeg_Transit_Round_Blue_Logo_bigger.png" />
-                <span>BUS: 350</span>
+                <span>BUS: ---</span>
             </div>
             <div class="item route">
-                <span>BLUE</span>
+                <span>---</span>
             </div>
             <div class="item destination">
-                <span>=> Unicity Shopping Centre</span>
+                <span>---</span>
             </div>
             <div class="item nextstop">
                 <span><i>NEXT STOP</i></span>
             </div>
             <div class="item nextstopName">
-                <span>Northbound<br>Pembina at Grandmont</span>
+                <span>---</span>
             </div>
         </div>
         <div class="panel panel2">
             <div class="cylinder">
-                <div class="cylinder-item">Northbound<br>Pembina at De La Digue</div>
-                <div class="cylinder-item">Northbound<br>Pembina at Ducharme</div>
-                <div class="cylinder-item">Northbound<br>Pembina at Grandmont</div>
+                <div class="cylinder-item"></div>
+                <div class="cylinder-item"></div>
+                <div class="cylinder-item"></div>
                 <div class="cylinder-item">^^^</div>
-                <div class="cylinder-item">Northbound<br>Pembina at Dalhousie South</div>
-                <div class="cylinder-item">Northbound<br>Pembina at Newdale North</div>
+                <div class="cylinder-item"></div>
+                <div class="cylinder-item"></div>
+            </div>
+        </div>
+    </div>
+    <div id="busModal" class="modal hidden">
+        <div class="modal-content">
+            <h2>Set Bus ID</h2>
+
+            <!-- Display (no OS keyboard) -->
+            <input type="text" id="busIdInput" readonly placeholder="Enter Bus ID" />
+
+            <!-- Dial Pad -->
+            <div class="dialpad">
+                <button onclick="press('1')">1</button>
+                <button onclick="press('2')">2</button>
+                <button onclick="press('3')">3</button>
+
+                <button onclick="press('4')">4</button>
+                <button onclick="press('5')">5</button>
+                <button onclick="press('6')">6</button>
+
+                <button onclick="press('7')">7</button>
+                <button onclick="press('8')">8</button>
+                <button onclick="press('9')">9</button>
+
+                <button id="c_button" onclick="clearInput()" style="background-color: darkred;">Close</button>
+                <button onclick="press('0')">0</button>
+                <button id="ok_button" onclick="saveBusId()" disabled>OK</button>
             </div>
         </div>
     </div>
 </body>
+<script>
+    let stops_data = [];
+
+    function openModal() {
+        document.getElementById('busModal').classList.remove('hidden');
+    }
+
+    function closeModal() {
+        document.getElementById('busModal').classList.add('hidden');
+    }
+
+    function press(val) {
+        const input = document.getElementById('busIdInput');
+        if (input.value.length < 3) {
+            input.value += val;
+        }
+        document.getElementById('c_button').innerHTML = "Clear";
+        document.getElementById('ok_button').disabled = false;
+    }
+
+    function clearInput() {
+        if (document.getElementById('busIdInput').value !== '') {
+            document.getElementById('busIdInput').value = '';
+            document.getElementById('c_button').innerHTML = "Close";
+            document.getElementById('ok_button').disabled = true;
+        } else {
+            closeModal();
+        }
+    }
+
+    function saveBusId() {
+        let bus_id = `000${document.getElementById('busIdInput').value}`.slice(-3);
+
+        if (bus_id) {
+            loadData(bus_id);
+            closeModal();
+            document.getElementById('c_button').innerHTML = "Close";
+            document.getElementById('ok_button').disabled = true;
+            document.getElementById('busIdInput').value = '';
+        }
+    }
+
+    async function loadData(bus_id) {
+        //fetchData
+        console.log(tripInfo);
+
+        document.querySelector('.title > span').textContent = `BUS: ${tripInfo.busId}`;
+        document.querySelector('.route > span').textContent = tripInfo.route.name;
+        document.querySelector('.route > span').style.border = `2px solid ${tripInfo.route.badgeStyle.borderColor}`;
+        document.querySelector('.route > span').style.backgroundColor = tripInfo.route.badgeStyle.backgroundColor;
+        document.querySelector('.route > span').style.color = tripInfo.route.badgeStyle.color;
+        document.querySelector('.destination > span').textContent = tripInfo.variant.name;
+
+        stops_data = tripInfo.scheduledStops;
+        // set next stop
+        // set route stops
+
+        // stops_data.forEach(stop => {
+        for (const stop of stops_data) {
+            let stop_lat = stop.position.lat;
+            let stop_lon = stop.position.lng;
+
+            let distance = await getDistance(stop_lat, stop_lon);
+
+            console.log("distance to", stop.name, distance, "km");
+        };
+    }
+
+    //getDistance
+    function calculateDistance(lat1, lon1, lat2, lon2) {
+        const R = 6371; // Earth radius in km
+        const dLat = (lat2 - lat1) * Math.PI / 180;
+        const dLon = (lon2 - lon1) * Math.PI / 180;
+        const a =
+            Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+            Math.cos(lat1 * Math.PI / 180) *
+            Math.cos(lat2 * Math.PI / 180) *
+            Math.sin(dLon / 2) * Math.sin(dLon / 2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        return R * c; // distance in km
+    }
+
+    // function getDistance(targetLat, targetLon) {
+    //     if (navigator.geolocation) {
+    //         navigator.geolocation.getCurrentPosition(
+    //             (position) => {
+    //                 const userLat = position.coords.latitude;
+    //                 const userLon = position.coords.longitude;
+
+    //                 console.log(userLat, userLon, targetLat, targetLon);
+    //                 const distance = calculateDistance(userLat, userLon, targetLat, targetLon);
+
+    //                 // document.getElementById("output").innerText =
+    //                 //   `Your location: (${userLat.toFixed(4)}, ${userLon.toFixed(4)})\n` +
+    //                 //   `Target location: (${targetLat}, ${targetLon})\n` +
+    //                 //   `Distance: ${distance.toFixed(2)} km`;
+    //                 return distance;
+    //             },
+    //             (error) => {
+    //                 console.log("Error: ", error.message);
+    //             }
+    //         );
+    //     } else {
+    //         console.log("Geolocation is not supported.");
+    //     }
+
+    //     return -1;
+    // }
+
+    function getDistance(targetLat, targetLon) {
+        return new Promise((resolve, reject) => {
+            if (!navigator.geolocation) {
+                reject("Geolocation is not supported.");
+                return;
+            }
+
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    const userLat = position.coords.latitude;
+                    const userLon = position.coords.longitude;
+
+                    // call your existing calculateDistance function
+                    console.log(userLat, userLon, targetLat, targetLon);
+                    const distance = calculateDistance(userLat, userLon, targetLat, targetLon);
+
+                    resolve(distance);
+                },
+                (error) => {
+                    reject(error.message);
+                }
+            );
+        });
+    }
+
+</script>
 
 </html>
