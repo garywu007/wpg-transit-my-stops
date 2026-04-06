@@ -613,6 +613,8 @@
                 }
             }
 
+            nextstop_distance = 999;
+
             textSpeech("en-US", `next stop: ${stops_data[stop_seq].name.split(' at ')[1]}${stop_seq === (stops_data.length - 1) ? ", the last stop of this ride, good bye and good luck!" : ""}`);
         }
     }
