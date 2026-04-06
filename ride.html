@@ -10,7 +10,7 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <script src="./mockData.js"></script>
+    <!-- <script src="./mockData.js"></script> -->
 
     <title>Bus Ride Live</title>
 
@@ -144,52 +144,60 @@
 
         .cylinder-item:nth-child(1) {
             transform: rotateX(320deg) translateZ(120px) translateY(-60%);
-            color: #666;
+            color: #444;
         }
 
         .cylinder-item:nth-child(2) {
             transform: rotateX(340deg) translateZ(120px) translateY(-60%);
-            color: #777;
+            color: #555;
         }
 
         .cylinder-item:nth-child(3) {
             transform: rotateX(0deg) translateZ(120px) translateY(-60%);
             font-weight: bold;
             font-size: 23px;
-            color: lightskyblue;
-            animation: flash 1s steps(1) infinite;
+            color: goldenrod;
+            animation: flash 5s steps(1) infinite;
         }
 
         .cylinder-item:nth-child(4) {
             transform: rotateX(20deg) translateZ(120px) translateY(-60%);
-            color: #bbb;
+            color: #888;
             /* font-weight: bold; */
         }
 
         .cylinder-item:nth-child(5) {
             transform: rotateX(40deg) translateZ(120px) translateY(-60%);
-            color: #888;
+            color: #555;
             /* font-weight: bold; */
         }
 
-        .cylinder-item:nth-child(6) {
+        /* .cylinder-item:nth-child(6) {
             transform: rotateX(348deg) translateZ(120px) translateY(-60%);
             font-weight: bold;
             font-size: 25px;
-            color: lightskyblue;
+            color: darkgoldenrod;
             animation: flash 1s steps(1) infinite;
-        }
+        } */
 
         @keyframes flash {
             0% {
                 opacity: 1;
             }
 
-            50% {
-                opacity: 0.6;
+            10% {
+                opacity: 0.8;
             }
 
-            100% {
+            20% {
+                opacity: 1;
+            }
+
+            30% {
+                opacity: 0.8;
+            }
+
+            40% {
                 opacity: 1;
             }
         }
@@ -290,7 +298,7 @@
             }
 
             .panel2 {
-                background: linear-gradient(#222 0%, #555 5%);
+                background: linear-gradient(#222 0%, #333 5%);
             }
 
             .item:not(:first-child) {
@@ -305,7 +313,7 @@
             }
 
             .panel2 {
-                background: linear-gradient(to right, #222 0%, #555 5%, #555 95%, #222 100%);
+                background: linear-gradient(to right, #222 0%, #333 5%, #333 95%, #222 100%);
             }
 
             .item:not(:first-child) {
@@ -325,11 +333,12 @@
             <div class="item route">
                 <span>---</span>
             </div>
-            <div class="item destination">
+            <div class="item destination" onclick="safetyBelt()">
                 <span>---</span>
             </div>
-            <div class="item nextstop">
+            <div class="item nextstop" onclick="refreshNextStop()">
                 <span><i>NEXT STOP</i></span>
+                <span style="background: darkgoldenrod; color: black; border-radius: 1em;">0 km</span>
             </div>
             <div class="item nextstopName">
                 <span>---</span>
@@ -337,11 +346,11 @@
         </div>
         <div class="panel panel2">
             <div class="cylinder">
-                <div class="cylinder-item">1</div>
-                <div class="cylinder-item">2</div>
-                <div class="cylinder-item">3</div>
-                <div class="cylinder-item">4</div>
-                <div class="cylinder-item">5</div>
+                <div class="cylinder-item"></div>
+                <div class="cylinder-item"></div>
+                <div class="cylinder-item"></div>
+                <div class="cylinder-item"></div>
+                <div class="cylinder-item"></div>
                 <!-- <div class="cylinder-item">^^^</div> -->
             </div>
         </div>
@@ -376,8 +385,12 @@
 </body>
 <script>
     let stops_data = [];
+    let stop_seq = -1;
+    let timer;
+    let nextstop_distance = 999;
 
     function openModal() {
+        clearInterval(timer);
         document.getElementById('busModal').classList.remove('hidden');
     }
 
@@ -416,12 +429,30 @@
         }
     }
 
+    async function fetchData(bus_id) {
+        try {
+            const response = await fetch(`https://winnipegtransit.com/api/v2/trips/schedule?bus_id=${bus_id}&live=true`);
+
+            if (!response.ok) {
+                throw new Error('HTTP error: ' + response.status);
+            }
+
+            const tripInfo = await response.json();
+            return tripInfo;
+        } catch (error) {
+            console.error(error);
+        }
+
+        return -1;
+    }
+
     async function loadData(bus_id) {
-        //fetchData
-        // console.log(tripInfo);
+        let tripInfo = await fetchData(bus_id);
+
+        if (tripInfo === -1) return;
 
         document.querySelector('.title > span').textContent = `BUS: ${tripInfo.busId}`;
-        document.querySelector('.route > span').textContent = tripInfo.route.name;
+        document.querySelector('.route > span').textContent = tripInfo.route.id;
         document.querySelector('.route > span').style.border = `2px solid ${tripInfo.route.badgeStyle.borderColor}`;
         document.querySelector('.route > span').style.backgroundColor = tripInfo.route.badgeStyle.backgroundColor;
         document.querySelector('.route > span').style.color = tripInfo.route.badgeStyle.color;
@@ -429,14 +460,20 @@
 
         stops_data = tripInfo.scheduledStops;
 
-        let start_stop_seq = await setStartStop(stops_data);
-        document.querySelector('.nextstopName > span').innerHTML = formatStopName(stops_data[start_stop_seq].name);
+        stop_seq = await setStartStop(stops_data);
+        document.querySelector('.nextstopName > span').innerHTML = formatStopName(stops_data[stop_seq].name);
 
         const cylinder_items = document.querySelectorAll('.cylinder-item');
 
         for (let i = 0; i < 5; i++) {
-            cylinder_items[i].innerHTML = formatStopName(stops_data[start_stop_seq - 2 + i].name);
+            if (stop_seq - 2 + i < 0 || stop_seq - 2 + i >= stops_data.length) {
+                cylinder_items[i].innerHTML = "";
+            } else {
+                cylinder_items[i].innerHTML = formatStopName(stops_data[stop_seq - 2 + i].name);
+            }
         }
+
+        timer = setInterval(getDistance, 100);
     }
 
     //getDistance
@@ -453,29 +490,39 @@
         return R * c; // distance in km
     }
 
-    function getDistance(targetLat, targetLon) {
-        return new Promise((resolve, reject) => {
-            if (!navigator.geolocation) {
-                reject("Geolocation is not supported.");
-                return;
-            }
+    function getDistance() {
+        // if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+            (position) => {
+                const userLat = position.coords.latitude;
+                const userLon = position.coords.longitude;
 
-            navigator.geolocation.getCurrentPosition(
-                (position) => {
-                    const userLat = position.coords.latitude;
-                    const userLon = position.coords.longitude;
+                let targetLat = stops_data[stop_seq].position.lat;
+                let targetLon = stops_data[stop_seq].position.lng;
 
-                    // call your existing calculateDistance function
-                    console.log(userLat, userLon, targetLat, targetLon);
-                    const distance = calculateDistance(userLat, userLon, targetLat, targetLon);
+                const distance = calculateDistance(userLat, userLon, targetLat, targetLon);
 
-                    resolve(distance);
-                },
-                (error) => {
-                    reject(error.message);
+                if (distance < nextstop_distance) {
+                    nextstop_distance = distance;
+                    document.querySelector('.nextstop > span:nth-of-type(2)').innerHTML = `${distance.toFixed(2)} km`;
+                } else {
+                    if (nextstop_distance < 0.05) {
+                        refreshNextStop();
+                    } else {
+                        nextstop_distance = distance;
+                        document.querySelector('.nextstop > span:nth-of-type(2)').innerHTML = `${distance.toFixed(2)} km`;
+                    }
                 }
-            );
-        });
+
+                // console.log(`distince: ${distance.toFixed(3)} to stop: ${stop_seq} @[${targetLat}, ${targetLon}]`);
+            },
+            (error) => {
+                console.log("Error: " + error.message);
+            }
+        );
+        // } else {
+        //     console.log("Geolocation is not supported.");
+        // }
     }
 
     function setStartStop(stops_data) {
@@ -543,10 +590,44 @@
         // Split the rest at ' at ' if exists
         const parts = rest.split(' at ');
         if (parts.length === 2) {
-            return `<small>${dirLetter} - ${parts[0]}</small><br>${parts[1]}`;
+            return `<small>${dirLetter}. ${parts[0]}</small><br>${parts[1]}`;
         } else {
-            return `<small>${dirLetter}</small><br>${rest}`;
+            return `<small>${dirLetter}.</small> ${rest}`;
         }
+    }
+
+    function refreshNextStop() {
+        if (stop_seq < stops_data.length - 1) {
+            stop_seq += 1;
+
+            document.querySelector('.nextstopName > span').innerHTML = formatStopName(stops_data[stop_seq].name);
+
+            const cylinder_items = document.querySelectorAll('.cylinder-item');
+
+            for (let i = 0; i < 5; i++) {
+                if (stop_seq - 2 + i < 0 || stop_seq - 2 + i >= stops_data.length) {
+                    cylinder_items[i].innerHTML = "";
+                } else {
+                    cylinder_items[i].innerHTML = formatStopName(stops_data[stop_seq - 2 + i].name);
+                }
+            }
+
+            textSpeech("en-US", `next stop: ${stops_data[stop_seq].name.split(' at ')[1]}${stop_seq === (stops_data.length - 1) ? ", the last stop of this ride, good bye and good luck!" : ""}`);
+        }
+    }
+
+    function safetyBelt() {
+        textSpeech("zh-HK", "收工好啊！歡迎搭乘你家嘅車，請扣好安全帶");
+    }
+
+    function textSpeech(lang, content) {
+        window.speechSynthesis.cancel();
+        const message = new SpeechSynthesisUtterance(content);
+        message.lang = lang; // Language
+        message.rate = 1;       // Speed (0.1 to 10)
+        message.pitch = 1;      // Tone (0 to 2)
+        message.volume = 1;     // Volume (0 to 1)
+        window.speechSynthesis.speak(message);
     }
 
 </script>
