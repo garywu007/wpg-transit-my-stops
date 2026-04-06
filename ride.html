@@ -10,7 +10,7 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <!-- <script src="./mockData.js"></script> -->
+    <script src="./mockData.js"></script>
 
     <title>Bus Ride Live</title>
 
@@ -448,7 +448,7 @@
     }
 
     async function loadData(bus_id) {
-        let tripInfo = await fetchData(bus_id);
+        // let tripInfo = await fetchData(bus_id);
 
         if (tripInfo === -1) return;
 
