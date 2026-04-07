@@ -475,6 +475,8 @@
         }
 
         timer = setInterval(getDistance, 100);
+
+        textSpeech("zh-HK", "現在出發");
     }
 
     //getDistance
@@ -492,38 +494,40 @@
     }
 
     function getDistance() {
-        // if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
-            (position) => {
-                const userLat = position.coords.latitude;
-                const userLon = position.coords.longitude;
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    const userLat = position.coords.latitude;
+                    const userLon = position.coords.longitude;
 
-                let targetLat = stops_data[stop_seq].position.lat;
-                let targetLon = stops_data[stop_seq].position.lng;
+                    let targetLat = stops_data[stop_seq].position.lat;
+                    let targetLon = stops_data[stop_seq].position.lng;
 
-                const distance = calculateDistance(userLat, userLon, targetLat, targetLon);
+                    const distance = calculateDistance(userLat, userLon, targetLat, targetLon);
 
-                if (distance < nextstop_distance) {
-                    nextstop_distance = distance;
-                    document.querySelector('.nextstop > span:nth-of-type(2)').innerHTML = `${distance.toFixed(2)} km`;
-                } else {
-                    if (nextstop_distance < 0.06) {
-                        refreshNextStop();
-                    } else {
+                    if (distance < nextstop_distance) {
                         nextstop_distance = distance;
                         document.querySelector('.nextstop > span:nth-of-type(2)').innerHTML = `${distance.toFixed(2)} km`;
+                        document.querySelector('.destination > span').textContent =  new Date().toLocaleTimeString();
+                    } else {
+                        if (nextstop_distance < 0.06) {
+                            refreshNextStop();
+                        } else {
+                            nextstop_distance = distance;
+                            document.querySelector('.nextstop > span:nth-of-type(2)').innerHTML = `${distance.toFixed(2)} km`;
+                            document.querySelector('.destination > span').textContent =  new Date().toLocaleTimeString();
+                        }
                     }
-                }
 
-                // console.log(`distince: ${distance.toFixed(3)} to stop: ${stop_seq} @[${targetLat}, ${targetLon}]`);
-            },
-            (error) => {
-                console.log("Error: " + error.message);
-            }
-        );
-        // } else {
-        //     console.log("Geolocation is not supported.");
-        // }
+                    // console.log(`distince: ${distance.toFixed(3)} to stop: ${stop_seq} @[${targetLat}, ${targetLon}]`);
+                },
+                (error) => {
+                    console.log("Error: " + error.message);
+                }
+            );
+        } else {
+            console.log("Geolocation is not supported.");
+        }
     }
 
     function setStartStop(stops_data) {
