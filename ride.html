@@ -334,7 +334,7 @@
             <div class="item route">
                 <span>---</span>
             </div>
-            <div class="item destination" onclick="safetyBelt()">
+            <div class="item destination" onclick="sayHi()">
                 <span>---</span>
             </div>
             <div class="item nextstop" onclick="refreshNextStop()">
@@ -451,8 +451,6 @@
         let tripInfo = await fetchData(bus_id);
 
         if (tripInfo === -1) return;
-
-        textSpeech("zh-HK", "現在出發");
 
         document.querySelector('.title > span').textContent = `BUS: ${tripInfo.busId}`;
         document.querySelector('.route > span').textContent = tripInfo.route.id;
@@ -619,8 +617,15 @@
         }
     }
 
-    function safetyBelt() {
-        textSpeech("zh-HK", "收工好啊！歡迎搭乘你家嘅車，請扣好安全帶");
+    function sayHi() {
+        let hour = new Date().getHours();
+        if (hour >= 5 && hour < 12) {
+            textSpeech("en-US", "Good Morning!"); 
+        } else if (hour >= 12 && hour < 18) {
+            textSpeech("en-US", "Good Afternoon!"); 
+        } else {
+            textSpeech("en-US", "Good Evening!"); 
+        }
     }
 
     function textSpeech(lang, content) {
