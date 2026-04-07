@@ -507,7 +507,7 @@
                     nextstop_distance = distance;
                     document.querySelector('.nextstop > span:nth-of-type(2)').innerHTML = `${distance.toFixed(2)} km`;
                 } else {
-                    if (nextstop_distance < 0.05) {
+                    if (nextstop_distance < 0.06) {
                         refreshNextStop();
                     } else {
                         nextstop_distance = distance;
@@ -548,12 +548,8 @@
 
                         try {
                             let distance = calculateDistance(userLat, userLon, stop_lat, stop_lon);
-                            if (min_distance < distance) {
-                                // stops_distance += `* ${idx}: ${stop.name} - ${distance.toFixed(3)}km\n`;
-                                closest_stop_seq = idx - 1;
-                                break;
-                            } else {
-                                // stops_distance += `${idx}: ${stop.name} - ${distance.toFixed(3)}km\n`;
+                            if (distance < min_distance) {
+                                closest_stop_seq = idx;
                                 min_distance = distance;
                             }
 
