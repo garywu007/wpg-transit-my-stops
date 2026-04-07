@@ -452,6 +452,8 @@
 
         if (tripInfo === -1) return;
 
+        textSpeech("zh-HK", "現在出發");
+
         document.querySelector('.title > span').textContent = `BUS: ${tripInfo.busId}`;
         document.querySelector('.route > span').textContent = tripInfo.route.id;
         document.querySelector('.route > span').style.border = `2px solid ${tripInfo.route.badgeStyle.borderColor}`;
@@ -475,8 +477,6 @@
         }
 
         timer = setInterval(getDistance, 100);
-
-        textSpeech("zh-HK", "現在出發");
     }
 
     //getDistance
