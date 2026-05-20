@@ -329,6 +329,8 @@
         let busStops = JSON.parse(localStorage.getItem("busStops") || "[]");
         const intervals = {}
 
+        let crossdomain = "";
+
         // create bus-stop boards
         function init() {
             const boardContainer = document.getElementById("board-container");
@@ -357,6 +359,8 @@
                     fetchStopSchedules(busStop);
                 }, 3000);
             });
+
+            crossdomain = "https://cold-credit-711d.garywu-jiawen.workers.dev?url=";
         }
 
         // detect if stop name is taller than its container
@@ -392,7 +396,7 @@
                         .map(route => route.route);
                     const maxResults = selectedRoutes.length > 1 ? 5 : 3;
                     const routes = busStop.routes ? `&routes=${selectedRoutes.join(",")}` : "";
-                    const res = await fetch(`https://cold-credit-711d.garywu-jiawen.workers.dev?url=https://winnipegtransit.com/api/v2/stops/${busStop.stopId}/schedule?max_results=${maxResults}${routes}`, { method: "GET" });
+                    const res = await fetch(`${crossdomain}https://winnipegtransit.com/api/v2/stops/${busStop.stopId}/schedule?max_results=${maxResults}${routes}`, { method: "GET" });
 
                     // Check for HTTP errors
                     if (!res.ok) {
@@ -527,7 +531,7 @@
 
             if (stopId.length === 5) {
                 try {
-                    const res = await fetch(`https://cold-credit-711d.garywu-jiawen.workers.dev?url=https://winnipegtransit.com/api/v2/stops/${stopId}`, { method: "GET" });
+                    const res = await fetch(`${crossdomain}https://winnipegtransit.com/api/v2/stops/${stopId}`, { method: "GET" });
 
                     // Check for HTTP errors
                     if (!res.ok) {
@@ -568,7 +572,7 @@
 
         async function fetchStopRoutes(stopId) {
             try {
-                const res = await fetch(`https://cold-credit-711d.garywu-jiawen.workers.dev?url=https://winnipegtransit.com/api/v2/stops/${stopId}/routes`, { method: "GET" });
+                const res = await fetch(`${crossdomain}https://winnipegtransit.com/api/v2/stops/${stopId}/routes`, { method: "GET" });
 
                 // Check for HTTP errors
                 if (!res.ok) {
